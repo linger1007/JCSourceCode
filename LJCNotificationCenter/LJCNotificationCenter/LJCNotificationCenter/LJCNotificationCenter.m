@@ -127,7 +127,7 @@ typedef void(^LJCNotificationObserverBlock)(LJCNotification *note);
 - (void)postNotification:(LJCNotification *)notification
 {
     [self.observers enumerateObjectsUsingBlock:^(LJCNotificationObserver * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if ([obj.notificationName isEqualToString:notification.name] &&
+        if ((!obj.notificationName || [obj.notificationName isEqualToString:notification.name]) &&
             (!obj.object || [obj.object isEqual:notification.object])) {    //nil或者object相同(isEqual:)
             if (obj.selector) {
                 if ([obj.observer respondsToSelector:obj.selector]) {

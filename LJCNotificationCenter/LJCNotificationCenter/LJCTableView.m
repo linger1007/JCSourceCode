@@ -29,7 +29,7 @@
         self.delegate = self;
         [self registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
         
-        [[LJCNotificationCenter defaultCenter] addObserver:self selector:@selector(ljcAddLineNotification:) name:LJCAddLineNotification object:@"123"];
+        [[LJCNotificationCenter defaultCenter] addObserver:self selector:@selector(ljcAddLineNotification:) name:nil object:@"123"];
         [[LJCNotificationCenter defaultCenter] addObserver:self selector:@selector(ljcRemoveLineNotification:) name:LJCRemoveLineNotification object:nil];
         
         // object 非空且不同(isEqual:)，不能移除

@@ -88,6 +88,8 @@
 {
     // object相同对象即可
     [[LJCNotificationCenter defaultCenter] postNotificationName:LJCAddLineNotification object:@"123" userInfo:@{ @"data" : [self _randomString]}];
+    
+    [NSNotificationQueue defaultQueue];
 }
 
 - (IBAction)handleRemoveButtonPressed:(id)sender
