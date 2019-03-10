@@ -92,16 +92,51 @@
 
 - (IBAction)handleRemoveButtonPressed:(id)sender
 {
-    LJCNotification *notification = [[LJCNotification alloc] initWithName:LJCRemoveLineNotification object:nil userInfo:nil];
+    LJCNotification *notification = [[LJCNotification alloc] initWithName:LJCRemoveLineNotification object:@"remove" userInfo:@{ @"data" : @"nothing" }];
     NSLog(@"handleRemoveButtonPressed:%@", notification);
+    
     [[LJCNotificationCenter defaultCenter] postNotification:notification];
 //    [[LJCNotificationCenter defaultCenter] postNotificationName:LJCRemoveLineNotification object:nil];
+    
+    [self _archiverNotification:notification];
 }
 
 #pragma mark -
 - (NSString *)_randomString
 {
     return [NSString stringWithFormat:@"%d", arc4random_uniform(10000000)];
+}
+- (void)_archiverNotification:(LJCNotification *)note
+{
+    if (!note) {
+        return;
+    }
+    NSError *error;
+    // YES meas adopt NSSecureCoding protocol!!!!
+    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:note requiringSecureCoding:NO error:&error];
+    if (!error) {
+        NSLog(@"Archiver success:%@", data);
+        
+        NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:data error:&error];
+        unarchiver.requiresSecureCoding = NO;
+        id object = [unarchiver decodeObjectOfClass:[LJCNotification class] forKey:NSKeyedArchiveRootObjectKey];;
+        
+        // requiresSecureCoding = YES, default
+//        id object = [NSKeyedUnarchiver unarchivedObjectOfClass:[LJCNotification class] fromData:data error:&error];
+        
+        if (!error) {
+            NSLog(@"Unarchiver success:%@", object);
+            if ([object isKindOfClass:[LJCNotification class]]) {
+                NSLog(@"Notification:%@", (LJCNotification *)object);
+            }
+        }
+        else {
+            NSLog(@"error:%@", error);
+        }
+    }
+    else {
+        NSLog(@"error:%@", error);
+    }
 }
 
 @end

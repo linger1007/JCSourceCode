@@ -10,12 +10,14 @@
 
 @interface LJCTableView()<UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, strong) NSMutableArray<NSString *> *datas;
+@property (nonatomic, weak) id observer;
 @end
 @implementation LJCTableView
 
 - (void)dealloc
 {
     [[LJCNotificationCenter defaultCenter] removeObserver:self];
+    [[NSNotificationCenter defaultCenter] removeObserver:self.observer];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -33,6 +35,15 @@
         // object 非空且不同(isEqual:)，不能移除
         [[LJCNotificationCenter defaultCenter] removeObserver:self name:LJCAddLineNotification object:@"1234"];
 //        [[LJCNotificationCenter defaultCenter] removeObserver:self];
+        
+        
+        // block
+        self.observer = [[LJCNotificationCenter defaultCenter] addObserverForName:LJCAddLineNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(LJCNotification * _Nonnull note) {
+            NSLog(@"note:%@", note);
+            
+            [[LJCNotificationCenter defaultCenter] removeObserver:self.observer];
+        }];
+        NSLog(@"self.observer:%@", self.observer);
     }
     return self;
 }

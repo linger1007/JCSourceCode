@@ -11,7 +11,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef NSString *LJCNotificationName NS_EXTENSIBLE_STRING_ENUM;
-@interface LJCNotification : NSObject // <NSCopying, NSCoding>
+@interface LJCNotification : NSObject <NSCopying, NSCoding>
 
 @property (readonly, copy) LJCNotificationName name;
 @property (nullable, readonly, retain) id object;
@@ -20,9 +20,9 @@ typedef NSString *LJCNotificationName NS_EXTENSIBLE_STRING_ENUM;
 - (instancetype)initWithName:(LJCNotificationName)name object:(nullable id)object userInfo:(nullable NSDictionary *)userInfo NS_DESIGNATED_INITIALIZER;
 - (nullable instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
-@end
-
-@interface LJCNotification (LJCNotificationCreation)
+//@end
+//
+//@interface LJCNotification (LJCNotificationCreation)
 
 + (instancetype)notificationWithName:(LJCNotificationName)aName object:(nullable id)anObject;
 + (instancetype)notificationWithName:(LJCNotificationName)aName object:(nullable id)anObject userInfo:(nullable NSDictionary *)aUserInfo;

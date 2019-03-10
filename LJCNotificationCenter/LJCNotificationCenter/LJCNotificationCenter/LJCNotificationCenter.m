@@ -8,6 +8,14 @@
 
 #import "LJCNotificationCenter.h"
 
+@interface __LJCObserver : NSObject
+
+@end
+@implementation __LJCObserver
+
+@end
+//MARK: ----------
+
 typedef void(^LJCNotificationObserverBlock)(LJCNotification *note);
 
 //- (void)addObserver:(id)observer selector:(SEL)aSelector name:(nullable LJCNotificationName)aName object:(nullable id)anObject
@@ -47,14 +55,6 @@ typedef void(^LJCNotificationObserverBlock)(LJCNotification *note);
     return self;
 }
 
-- (nullable instancetype)initWithCoder:(NSCoder *)aDecoder
-{
-    if (self = [super init]) {
-        
-    }
-    return self;
-}
-
 - (NSString *)description
 {
     return [NSString stringWithFormat:@"%@ %p {name = %@; object = %@; userInfo = %@}", [self class], self, self.name, self.object, self.userInfo];
@@ -69,6 +69,25 @@ typedef void(^LJCNotificationObserverBlock)(LJCNotification *note);
     return [[[self class] alloc] initWithName:aName object:anObject userInfo:aUserInfo];
 }
 
+#pragma mark - NSCopying
+- (id)copyWithZone:(NSZone *)zone
+{
+    return [LJCNotification notificationWithName:self.name object:self.object userInfo:self.userInfo];
+}
+
+#pragma mark - NSCoding
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+    [aCoder encodeObject:self.name forKey:@"name"];
+    [aCoder encodeObject:self.object forKey:@"object"];
+    [aCoder encodeObject:self.userInfo forKey:@"userInfo"];
+}
+- (nullable instancetype)initWithCoder:(NSCoder *)aDecoder
+{
+    return [LJCNotification notificationWithName:[aDecoder decodeObjectForKey:@"name"]
+                                          object:[aDecoder decodeObjectForKey:@"object"]
+                                        userInfo:[aDecoder decodeObjectForKey:@"userInfo"]];
+}
 @end
 
 //MARK: ----------
@@ -110,11 +129,19 @@ typedef void(^LJCNotificationObserverBlock)(LJCNotification *note);
     [self.observers enumerateObjectsUsingBlock:^(LJCNotificationObserver * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         if ([obj.notificationName isEqualToString:notification.name] &&
             (!obj.object || [obj.object isEqual:notification.object])) {    //nil或者object相同(isEqual:)
-            if ([obj.observer respondsToSelector:obj.selector]) {
+            if (obj.selector) {
+                if ([obj.observer respondsToSelector:obj.selector]) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-                [obj.observer performSelector:obj.selector withObject:notification];
+                    [obj.observer performSelector:obj.selector withObject:notification];
 #pragma clang diagnostic pop
+                }
+            }
+            else if (obj.block) {
+                NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
+                    obj.block(notification);
+                }];
+                [obj.operationQueue addOperation:operation];
             }
         }
     }];
@@ -146,7 +173,14 @@ typedef void(^LJCNotificationObserverBlock)(LJCNotification *note);
 
 - (id <NSObject>)addObserverForName:(nullable LJCNotificationName)name object:(nullable id)obj queue:(nullable NSOperationQueue *)queue usingBlock:(void (^)(LJCNotification *note))block
 {
-    //TODO: 1
-    return nil;
+    LJCNotificationObserver *obs = [LJCNotificationObserver new];
+    obs.observer = [__LJCObserver new];
+    obs.notificationName = name;
+    obs.object = obj;
+    obs.operationQueue = queue;
+    obs.block = block;
+    [self.observers addObject:obs];
+    
+    return obs.observer;
 }
 @end
